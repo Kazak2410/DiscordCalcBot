@@ -8,49 +8,94 @@ PREFIX = "/"
 bot = commands.Bot(command_prefix=PREFIX, intents=disnake.Intents.all())
 
 
-elements = ['1', '2', '3', '*', '4', '5', '6', '//', '7', '8', '9', '+', ',', '0', '=', '-']
-
-
 @bot.event
 async def on_ready():
     print("bot connected")
 
 
-class ButtonNumber(Button):
-    def __init__(self, label, row, style):
-        super().__init__(label=label, row=row, style=style)
-        self.emb = disnake.Embed(title=self.label)
+class CalcButton(Button):
+    def __init__(self, style, label, row):
+        super().__init__(style=style, label=label, row=row)
 
     async def callback(self, interaction: disnake.ApplicationCommandInteraction):
-        if self.label != '=':
-            lst_values.append(self.label)
-            calc_emb.title = ''.join(i for i in lst_values)
-        else:
-            calc_emb.title = eval(''.join(i for i in lst_values))
-
-        await interaction.response.edit_message(embed=calc_emb)
+        await interaction.response.send_message(content="")
 
 
-calc_emb = disnake.Embed(title='Введите значения...')
-lst_values = []
+buttons = [
+        CalcButton(style=disnake.ButtonStyle.gray, label="7", row=0),
+        CalcButton(style=disnake.ButtonStyle.gray, label="8", row=0),
+        CalcButton(style=disnake.ButtonStyle.gray, label="9", row=0),
+        CalcButton(style=disnake.ButtonStyle.blurple, label="/", row=0),
+        CalcButton(style=disnake.ButtonStyle.red, label="<-", row=0),
+
+        CalcButton(style=disnake.ButtonStyle.gray, label="4", row=1),
+        CalcButton(style=disnake.ButtonStyle.gray, label="5", row=1),
+        CalcButton(style=disnake.ButtonStyle.gray, label="6", row=1),
+        CalcButton(style=disnake.ButtonStyle.blurple, label="*", row=1),
+        CalcButton(style=disnake.ButtonStyle.red, label="Clear", row=1),
+
+        CalcButton(style=disnake.ButtonStyle.gray, label="1", row=2),
+        CalcButton(style=disnake.ButtonStyle.gray, label="2", row=2),
+        CalcButton(style=disnake.ButtonStyle.gray, label="3", row=2),
+        CalcButton(style=disnake.ButtonStyle.blurple, label="-", row=2),
+        CalcButton(style=disnake.ButtonStyle.red, label="Exit", row=2),
+
+        CalcButton(style=disnake.ButtonStyle.gray, label="00", row=3),
+        CalcButton(style=disnake.ButtonStyle.gray, label="0", row=3),
+        CalcButton(style=disnake.ButtonStyle.gray, label=".", row=3),
+        CalcButton(style=disnake.ButtonStyle.blurple, label="+", row=3),
+        CalcButton(style=disnake.ButtonStyle.green, label="=", row=3)
+]
 
 
 @bot.command()
 async def calc(ctx):
+    main = await ctx.send(content="Loading...")
+    emb = disnake.Embed(title="`Calculator`")
+    expression = ''
+    symbols = ("*", "+", "/", "-")
     view = View()
 
-    row = 4
-    start = 0
-    finish = 3
+    for button in buttons:
+        view.add_item(button)
 
-    for i in range(row):
-        for j in range(start, finish + 1):
-            view.add_item(ButtonNumber(label=elements[j], row=i, style=disnake.ButtonStyle.grey))
-        start = finish + 1
-        finish += 4
+    await main.edit(content='', view=view, embed=emb)
 
-    await ctx.send(embed=calc_emb, view=view)
+    def check(m):
+        return m.author == ctx.author and m.channel == ctx.channel
+
+    while True:
+        event = await bot.wait_for("button_click", check=check)
+
+        if ctx.author == event.author:
+            if event.component.label == "=":
+                expression = str(eval(expression))
+                emb.description = expression
+                await main.edit(embed=emb)
+
+            elif event.component.label == "<-":
+                expression = expression[:-1]
+                emb.description = expression
+                await main.edit(embed=emb)
+
+            elif event.component.label == "Clear":
+                expression = ''
+                emb.description = expression
+                await main.edit(embed=emb)
+
+            elif event.component.label == "Exit":
+                await main.edit(content="Calculator is closed", embed=None, view=None)
+                break
+            else:
+                if event.component.label in ("*", "/", "+") and len(expression) == 0 or \
+                        event.component.label in symbols and len(expression) != 0 and expression[-1] in symbols:
+                    await main.reply(content="Некоректная запись!")
+                else:
+                    expression += event.component.label
+
+                emb.description = expression
+                await main.edit(embed=emb)
 
 
 def run_bot():
-    bot.run("MTA0NzAxODQyODgyNjkxMDc1MA.GJlhJ7.DGoYaiwx-zXrXbSk_T-cUK6IrS88dj4ztvf14Q")
+    bot.run("MTA0NzAxODQyODgyNjkxMDc1MA.G-JFaX.cLvZ8WGCr11Abo-O-QOZKufJv4O4pqccs-QYwg")
