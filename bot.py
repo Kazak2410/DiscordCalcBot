@@ -1,3 +1,4 @@
+import os
 import disnake
 from disnake.ext import commands
 from disnake.ui import Button, View
@@ -98,4 +99,5 @@ async def calc(ctx):
 
 
 def run_bot():
-    bot.run("MTA0NzAxODQyODgyNjkxMDc1MA.G-JFaX.cLvZ8WGCr11Abo-O-QOZKufJv4O4pqccs-QYwg")
+    with open("C:\\Users\\Ilya\\Desktop\\TOKEN.txt", "r") as TOKEN:
+        bot.run(TOKEN.read())
