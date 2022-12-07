@@ -2,8 +2,10 @@ import os
 import disnake
 from disnake.ext import commands
 from disnake.ui import Button, View
+from dotenv import load_dotenv, find_dotenv
 
 
+load_dotenv(find_dotenv())
 PREFIX = "/"
 
 bot = commands.Bot(command_prefix=PREFIX, intents=disnake.Intents.all())
@@ -99,5 +101,4 @@ async def calc(ctx):
 
 
 def run_bot():
-    with open("C:\\Users\\Ilya\\Desktop\\TOKEN.txt", "r") as TOKEN:
-        bot.run(TOKEN.read())
+    bot.run(os.getenv('TOKEN'))
