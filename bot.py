@@ -6,6 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 
 
 load_dotenv(find_dotenv())
+
 PREFIX = "/"
 
 bot = commands.Bot(command_prefix=PREFIX, intents=disnake.Intents.all())
